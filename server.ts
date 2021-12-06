@@ -68,6 +68,7 @@ app.post<{}, {}, ISnippet>("/snippets", async (req, res) => {
   // handle where text is null
   if (text) {
     let result;
+    // handle title null
     if (title) {
       result = await client.query(
         "INSERT INTO snippets VALUES (DEFAULT, $1, DEFAULT, $2) RETURNING *",
