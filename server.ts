@@ -45,6 +45,7 @@ app.get("/snippets", async (req, res) => {
   const snippets = dbres.rows;
   res.status(200).json({
     status: "success",
+    message: "Retrieved all snippets",
     data: snippets,
   });
 });
@@ -56,6 +57,7 @@ app.get("/snippets/:id", async (req, res) => {
   const snippets = dbres.rows;
   res.status(200).json({
     status: "success",
+    message: "Retrieved snippet with id",
     data: snippets,
   });
 });
@@ -63,20 +65,38 @@ app.get("/snippets/:id", async (req, res) => {
 // CREATE /snippets
 app.post<{}, {}, ISnippet>("/snippets", async (req, res) => {
   const { title, text } = req.body;
-  const result = await client.query(
-    "INSERT INTO snippets VALUES (DEFAULT, $1, DEFAULT, $2) RETURNING *",
-    [title, text]
-  );
-  const snippet = result.rows;
-  if (result.rowCount === 1) {
-    res.status(201).json({
-      status: "success",
-      data: {
-        snippet,
-      },
-    });
+  // handle where text is null
+  if (text) {
+    let result;
+    if (title) {
+      result = await client.query(
+        "INSERT INTO snippets VALUES (DEFAULT, $1, DEFAULT, $2) RETURNING *",
+        [title, text]
+      );
+    } else {
+      result = await client.query(
+        "INSERT INTO snippets VALUES (DEFAULT, DEFAULT, DEFAULT, $1) RETURNING *",
+        [text]
+      );
+    }
+    const snippet = result.rows;
+    if (result.rowCount === 1) {
+      res.status(201).json({
+        status: "success",
+        message: "Snippet created",
+        data: {
+          snippet,
+        },
+      });
+    } else {
+      res.status(404).json(result);
+    }
   } else {
-    res.status(404).json(result);
+    res.status(400).json({
+      status: "fail",
+      message: "Bad request - text required",
+      data: {},
+    });
   }
 });
 
@@ -96,22 +116,21 @@ app.delete<{ id: string }>("/snippets/:id", async (req, res) => {
     if (queryResult.rowCount === 1) {
       res.status(200).json({
         status: "success",
+        message: "Snippet successfully deleted",
         data: { deleted_id: queryResult.rows[0].id },
       });
     } else {
       res.status(500).json({
         status: "fail",
-        data: {
-          id: "Something went wrong with deletion.",
-        },
+        message: "Something went wrong with deletion.",
+        data: {},
       });
     }
   } else {
     res.status(404).json({
       status: "fail",
-      data: {
-        id: "Could not find a snippet with that id.",
-      },
+      message: "Could not find a snippet with that id.",
+      data: {},
     });
   }
 });
