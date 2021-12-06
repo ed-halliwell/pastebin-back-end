@@ -30,9 +30,7 @@ const app = express();
 app.use(express.json()); //add body parser to each following route handler
 app.use(cors()); //add CORS support to each following route handler
 
-const client = new Client({ database: "pastebin" });
-// COME BACK TO THIS
-//const client = new Client(dbConfig);
+const client = new Client(dbConfig);
 async function connectClient() {
   await client.connect();
   console.log("Connected to DB");
