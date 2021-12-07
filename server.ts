@@ -39,7 +39,7 @@ connectClient();
 
 // GET /snippets
 app.get("/snippets", async (req, res) => {
-  const dbres = await client.query("select * from snippets LIMIT 10");
+  const dbres = await client.query("select * from snippets LIMIT 100");
   const snippets = dbres.rows;
   res.status(200).json({
     status: "success",
@@ -133,6 +133,36 @@ app.delete<{ id: string }>("/snippets/:id", async (req, res) => {
     });
   }
 });
+
+// PATCH /todos/:id
+app.patch<{ id: string }, {}, Partial<ISnippet>>(
+  "/snippets/:id",
+  async (req, res) => {
+    const { title, text } = req.body;
+    const id = parseInt(req.params.id);
+
+    const updateResponse = await client.query(
+      "UPDATE snippets SET title = $2, text = $3 WHERE id = $1 RETURNING *",
+      [id, title, text]
+    );
+    if (updateResponse.rowCount === 1) {
+      const updatedSnippet = updateResponse.rows[0];
+      res.status(201).json({
+        status: "success",
+        message: "Snippet successfully updated.",
+        data: {
+          snippet: updatedSnippet,
+        },
+      });
+    } else {
+      res.status(404).json({
+        status: "fail",
+        message: "Something went wrong with updating.",
+        data: {},
+      });
+    }
+  }
+);
 
 //Start the server on the given port
 const port = process.env.PORT;
