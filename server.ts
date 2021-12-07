@@ -140,24 +140,53 @@ app.patch<{ id: string }, {}, Partial<ISnippet>>(
   async (req, res) => {
     const { title, text } = req.body;
     const id = parseInt(req.params.id);
-
-    const updateResponse = await client.query(
-      "UPDATE snippets SET title = $2, text = $3 WHERE id = $1 RETURNING *",
-      [id, title, text]
+    const verifySnippetId = await client.query(
+      "SELECT * FROM snippets WHERE id = ($1)",
+      [id]
     );
-    if (updateResponse.rowCount === 1) {
-      const updatedSnippet = updateResponse.rows[0];
-      res.status(201).json({
-        status: "success",
-        message: "Snippet successfully updated.",
-        data: {
-          snippet: updatedSnippet,
-        },
-      });
+
+    //if title or text is not present
+    if (verifySnippetId) {
+      if (text) {
+        let updateResponse;
+        if (title) {
+          updateResponse = await client.query(
+            "UPDATE snippets SET title = $2, text = $3 WHERE id = $1 RETURNING *",
+            [id, title, text]
+          );
+        } else {
+          updateResponse = await client.query(
+            "UPDATE snippets SET title = DEFAULT, text = $2 WHERE id = $1 RETURNING *",
+            [id, text]
+          );
+        }
+        if (updateResponse.rowCount === 1) {
+          const updatedSnippet = updateResponse.rows[0];
+          res.status(201).json({
+            status: "success",
+            message: "Snippet successfully updated.",
+            data: {
+              snippet: updatedSnippet,
+            },
+          });
+        } else {
+          res.status(500).json({
+            status: "fail",
+            message: "Something went wrong with updating.",
+            data: {},
+          });
+        }
+      } else {
+        res.status(400).json({
+          status: "fail",
+          message: "Text is required.",
+          data: {},
+        });
+      }
     } else {
       res.status(404).json({
         status: "fail",
-        message: "Something went wrong with updating.",
+        message: "No snippet with that ID found.",
         data: {},
       });
     }
