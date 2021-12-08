@@ -39,8 +39,10 @@ connectClient();
 
 // GET /snippets
 app.get("/snippets", async (req, res) => {
+  // checks whether a limit has been set, if not then limit is set to 100
   let limit;
   if (req.query.limit) {
+    // verify that limit is a valid positive integer
     let isInt = /^\+?\d+$/.test(String(req.query.limit));
     limit = Number(req.query.limit);
     if (!isInt || limit < 0) {
@@ -50,11 +52,11 @@ app.get("/snippets", async (req, res) => {
         data: {},
       });
     } else {
+      // ensure limit is never more than 100
       if (limit > 100) {
         limit = 100;
       }
     }
-
     const dbres = await client.query("SELECT * FROM snippets LIMIT $1", [
       limit,
     ]);
