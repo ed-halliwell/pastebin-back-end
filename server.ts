@@ -43,7 +43,7 @@ app.get("/snippets", async (req, res) => {
   let limit;
   if (req.query.limit) {
     // verify that limit is a valid positive integer
-    let isInt = /^\+?\d+$/.test(String(req.query.limit));
+    const isInt = /^\+?\d+$/.test(String(req.query.limit));
     limit = Number(req.query.limit);
     if (!isInt || limit < 0) {
       res.status(400).json({
@@ -153,7 +153,7 @@ app.delete<{ id: string }>("/snippets/:id", async (req, res) => {
   );
 
   if (getSnippetById) {
-    const queryResult: any = await client.query(
+    const queryResult = await client.query(
       "DELETE FROM snippets WHERE id = ($1) RETURNING *",
       [id]
     );
