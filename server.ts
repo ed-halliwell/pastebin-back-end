@@ -39,25 +39,41 @@ connectClient();
 
 // GET /snippets
 app.get("/snippets", async (req, res) => {
-  const dbres = await client.query("select * from snippets LIMIT 100");
+  const dbres = await client.query("SELECT * FROM snippets LIMIT 100");
   const snippets = dbres.rows;
-  res.status(200).json({
-    status: "success",
-    message: "Retrieved all snippets",
-    data: snippets,
-  });
+  if (snippets) {
+    res.status(200).json({
+      status: "success",
+      message: "Retrieved snippets",
+      data: snippets,
+    });
+  } else {
+    res.status(500).json({
+      status: "fail",
+      message: "Something went wrong with fetching snippets.",
+      data: {},
+    });
+  }
 });
 
 // GET /snippet:id
 app.get("/snippets/:id", async (req, res) => {
   const id = parseInt(req.params.id);
-  const dbres = await client.query("select * from snippets where id=$1", [id]);
+  const dbres = await client.query("SELECT * FROM snippets WHERE id=$1", [id]);
   const snippets = dbres.rows;
-  res.status(200).json({
-    status: "success",
-    message: "Retrieved snippet with id",
-    data: snippets,
-  });
+  if (snippets.length === 1) {
+    res.status(200).json({
+      status: "success",
+      message: "Retrieved snippet with ID.",
+      data: snippets,
+    });
+  } else {
+    res.status(404).json({
+      status: "fail",
+      message: "Could not find a snippet with that ID.",
+      data: {},
+    });
+  }
 });
 
 // CREATE /snippets
@@ -82,18 +98,24 @@ app.post<{}, {}, ISnippet>("/snippets", async (req, res) => {
     if (result.rowCount === 1) {
       res.status(201).json({
         status: "success",
-        message: "Snippet created",
+        message: "Snippet successfully created.",
         data: {
           snippet,
         },
       });
     } else {
-      res.status(404).json(result);
+      res.status(500).json({
+        status: "fail",
+        message: "Something went wrong with snippet creation.",
+        data: {
+          result,
+        },
+      });
     }
   } else {
     res.status(400).json({
       status: "fail",
-      message: "Bad request - text required",
+      message: "Bad request. Text is required.",
       data: {},
     });
   }
@@ -115,7 +137,7 @@ app.delete<{ id: string }>("/snippets/:id", async (req, res) => {
     if (queryResult.rowCount === 1) {
       res.status(200).json({
         status: "success",
-        message: "Snippet successfully deleted",
+        message: "Snippet successfully deleted.",
         data: { deleted_id: queryResult.rows[0].id },
       });
     } else {
@@ -128,7 +150,7 @@ app.delete<{ id: string }>("/snippets/:id", async (req, res) => {
   } else {
     res.status(404).json({
       status: "fail",
-      message: "Could not find a snippet with that id.",
+      message: "Could not find a snippet with that ID.",
       data: {},
     });
   }
@@ -179,14 +201,14 @@ app.patch<{ id: string }, {}, Partial<ISnippet>>(
       } else {
         res.status(400).json({
           status: "fail",
-          message: "Text is required.",
+          message: "Bad request. Text is required.",
           data: {},
         });
       }
     } else {
       res.status(404).json({
         status: "fail",
-        message: "No snippet with that ID found.",
+        message: "Could not find a snippet with that ID.",
         data: {},
       });
     }
