@@ -88,7 +88,13 @@ app.post<{}, {}, ISnippet>("/snippets", async (req, res) => {
         },
       });
     } else {
-      res.status(404).json(result);
+      res.status(404).json({
+        status: "fail",
+        message: "Something went wrong with snippet creation.",
+        data: {
+          result,
+        },
+      });
     }
   } else {
     res.status(400).json({
