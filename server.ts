@@ -39,27 +39,48 @@ connectClient();
 
 // GET /snippets
 app.get("/snippets", async (req, res) => {
-  const dbres = await client.query("SELECT * FROM snippets LIMIT 100");
-  const snippets = dbres.rows;
-  if (snippets) {
-    res.status(200).json({
-      status: "success",
-      message: "Retrieved snippets",
-      data: snippets,
-    });
-  } else {
-    res.status(500).json({
-      status: "fail",
-      message: "Something went wrong with fetching snippets.",
-      data: {},
-    });
+  let limit;
+  if (req.query.limit) {
+    let isInt = /^\+?\d+$/.test(String(req.query.limit));
+    limit = Number(req.query.limit);
+    if (!isInt || limit < 0) {
+      res.status(400).json({
+        status: "fail",
+        message: "Bad request. Limit must be a positive whole number.",
+        data: {},
+      });
+    } else {
+      if (limit > 100) {
+        limit = 100;
+      }
+    }
+
+    const dbres = await client.query("SELECT * FROM snippets LIMIT $1", [
+      limit,
+    ]);
+    const snippets = dbres.rows;
+    if (snippets) {
+      res.status(200).json({
+        status: "success",
+        message: "Retrieved snippets",
+        data: snippets,
+      });
+    } else {
+      res.status(500).json({
+        status: "fail",
+        message: "Something went wrong with fetching snippets.",
+        data: {},
+      });
+    }
   }
 });
 
 // GET /snippet:id
 app.get("/snippets/:id", async (req, res) => {
   const id = parseInt(req.params.id);
-  const dbres = await client.query("SELECT * FROM snippets WHERE id=$1", [id]);
+  const dbres = await client.query("SELECT * FROM snippets WHERE id = $1", [
+    id,
+  ]);
   const snippets = dbres.rows;
   if (snippets.length === 1) {
     res.status(200).json({
