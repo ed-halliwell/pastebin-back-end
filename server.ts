@@ -41,6 +41,7 @@ connectClient();
 app.get("/snippets", async (req, res) => {
   // checks whether a limit has been set, if not then limit is set to 100
   let limit;
+  let dbres;
   if (req.query.limit) {
     // verify that limit is a valid positive integer
     const isInt = /^\+?\d+$/.test(String(req.query.limit));
@@ -57,23 +58,28 @@ app.get("/snippets", async (req, res) => {
         limit = 100;
       }
     }
-    const dbres = await client.query("SELECT * FROM snippets LIMIT $1", [
-      limit,
-    ]);
-    const snippets = dbres.rows;
-    if (snippets) {
-      res.status(200).json({
-        status: "success",
-        message: "Retrieved snippets",
-        data: snippets,
-      });
-    } else {
-      res.status(500).json({
-        status: "fail",
-        message: "Something went wrong with fetching snippets.",
-        data: {},
-      });
-    }
+    dbres = await client.query(
+      "SELECT * FROM snippets ORDER BY createdat desc, id desc LIMIT $1",
+      [limit]
+    );
+  } else {
+    dbres = await client.query(
+      "SELECT * FROM snippets ORDER BY createdat desc, id desc"
+    );
+  }
+  const snippets = dbres.rows;
+  if (snippets) {
+    res.status(200).json({
+      status: "success",
+      message: "Retrieved snippets",
+      data: snippets,
+    });
+  } else {
+    res.status(500).json({
+      status: "fail",
+      message: "Something went wrong with fetching snippets.",
+      data: {},
+    });
   }
 });
 
