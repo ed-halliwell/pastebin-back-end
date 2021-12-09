@@ -39,27 +39,50 @@ connectClient();
 
 // GET /snippets
 app.get("/snippets", async (req, res) => {
-  const dbres = await client.query("SELECT * FROM snippets LIMIT 100");
-  const snippets = dbres.rows;
-  if (snippets) {
-    res.status(200).json({
-      status: "success",
-      message: "Retrieved snippets",
-      data: snippets,
-    });
-  } else {
-    res.status(500).json({
-      status: "fail",
-      message: "Something went wrong with fetching snippets.",
-      data: {},
-    });
+  // checks whether a limit has been set, if not then limit is set to 100
+  let limit;
+  if (req.query.limit) {
+    // verify that limit is a valid positive integer
+    const isInt = /^\+?\d+$/.test(String(req.query.limit));
+    limit = Number(req.query.limit);
+    if (!isInt || limit < 0) {
+      res.status(400).json({
+        status: "fail",
+        message: "Bad request. Limit must be a positive whole number.",
+        data: {},
+      });
+    } else {
+      // ensure limit is never more than 100
+      if (limit > 100) {
+        limit = 100;
+      }
+    }
+    const dbres = await client.query("SELECT * FROM snippets LIMIT $1", [
+      limit,
+    ]);
+    const snippets = dbres.rows;
+    if (snippets) {
+      res.status(200).json({
+        status: "success",
+        message: "Retrieved snippets",
+        data: snippets,
+      });
+    } else {
+      res.status(500).json({
+        status: "fail",
+        message: "Something went wrong with fetching snippets.",
+        data: {},
+      });
+    }
   }
 });
 
 // GET /snippet:id
 app.get("/snippets/:id", async (req, res) => {
   const id = parseInt(req.params.id);
-  const dbres = await client.query("SELECT * FROM snippets WHERE id=$1", [id]);
+  const dbres = await client.query("SELECT * FROM snippets WHERE id = $1", [
+    id,
+  ]);
   const snippets = dbres.rows;
   if (snippets.length === 1) {
     res.status(200).json({
@@ -130,7 +153,7 @@ app.delete<{ id: string }>("/snippets/:id", async (req, res) => {
   );
 
   if (getSnippetById) {
-    const queryResult: any = await client.query(
+    const queryResult = await client.query(
       "DELETE FROM snippets WHERE id = ($1) RETURNING *",
       [id]
     );
