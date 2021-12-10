@@ -59,12 +59,12 @@ app.get("/snippets", async (req, res) => {
       }
     }
     dbres = await client.query(
-      "SELECT * FROM snippets ORDER BY createdat desc, id desc LIMIT $1",
+      "SELECT * FROM snippets ORDER BY createdat DESC, id DESC LIMIT $1",
       [limit]
     );
   } else {
     dbres = await client.query(
-      "SELECT * FROM snippets ORDER BY createdat desc, id desc"
+      "SELECT * FROM snippets ORDER BY createdat DESC, id DESC"
     );
   }
   const snippets = dbres.rows;
@@ -108,10 +108,8 @@ app.get("/snippets/:id", async (req, res) => {
 // CREATE /snippets
 app.post<{}, {}, ISnippet>("/snippets", async (req, res) => {
   const { title, text } = req.body;
-  // handle where text is null
   if (text) {
     let result;
-    // handle title null
     if (title) {
       result = await client.query(
         "INSERT INTO snippets VALUES (DEFAULT, $1, DEFAULT, $2) RETURNING *",
