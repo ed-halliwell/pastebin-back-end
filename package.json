@@ -11,7 +11,7 @@
     "format:check": "prettier --check server.ts",
     "lint": "eslint server.ts",
     "typecheck": "tsc --noEmit",
-    "test": "jest",
+    "test": "LOCAL=true jest server.test.ts",
     "test:watch": "jest --watch"
   },
   "author": "your name here",
@@ -36,6 +36,7 @@
     "nodemon": "^2.0.15",
     "prettier": "^2.5.1",
     "supertest": "^6.1.6",
+    "ts-jest": "^27.1.1",
     "ts-node-dev": "^1.1.1",
     "typescript": "^4.1.3"
   }
