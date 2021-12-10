@@ -30,7 +30,7 @@ const app = express();
 app.use(express.json()); //add body parser to each following route handler
 app.use(cors()); //add CORS support to each following route handler
 
-const client = new Client(dbConfig);
+export const client = new Client(dbConfig);
 async function connectClient() {
   await client.connect();
   console.log("Connected to DB");
@@ -249,7 +249,7 @@ const port = process.env.PORT;
 if (!port) {
   throw "Missing PORT environment variable.  Set it in .env file.";
 }
-app.listen(port, () => {
+export const server = app.listen(port, () => {
   console.log(`Server is up and running on port ${port}`);
 });
 
