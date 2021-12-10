@@ -1,11 +1,10 @@
-# mark-fullstack-proj--starter-1
+# Academy Project: PasteBin
 
-## Usage:
+A simple application to allow the saving of text snippets.
 
-Instead of cloning this project, click "Use this template".  This will allow you to create a repo on github which has this project's content but which is not a fork of it.
-
-Make sure you create the repo as being owned by your own account not by the WeAreAcademy organisation.
-
+- <a href="https://github.com/ed-halliwell/pastebin-front-end">Front End Application GitHub Repository</a>
+- <a href="https://github.com/ed-halliwell/pastebin-back-end">Back End Application GitHub Repository</a>
+- <a href="https://www.notion.so/weareacademy/Team-C3A3-PasteBin-Project-1-23f250347b0245a0a3c8afe99ca9287b">Documentation</a>
 
 ## Install
 
@@ -25,6 +24,8 @@ You will need to create your own databases for this project - one locally and on
 
 This will set the env var LOCAL to true, which will cause the db connection configuration to NOT use SSL (appropriate for your local db)
 
-## running on heroku
+## Running on heroku
 
 When the project is deployed to heroku, the command in your `Procfile` file will be run.
+
+<a rel="license" href="http://creativecommons.org/licenses/by-nc-nd/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-nd/4.0/88x31.png" /></a>
