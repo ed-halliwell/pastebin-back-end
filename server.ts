@@ -39,47 +39,59 @@ connectClient();
 
 // GET /snippets
 app.get("/snippets", async (req, res) => {
-  // checks whether a limit has been set, if not then limit is set to 100
   let limit;
   let dbres;
+  // checks if there is a limit set in the query params
   if (req.query.limit) {
     // verify that limit is a valid positive integer
     const isInt = /^\+?\d+$/.test(String(req.query.limit));
     limit = Number(req.query.limit);
-    if (!isInt || limit < 0) {
+    if (isInt && limit > 0) {
+      // if limit is more than 100 then set it to 100
+      if (limit > 100) limit = 100;
+      dbres = await client.query(
+        "SELECT * FROM snippets ORDER BY createdat DESC, id DESC LIMIT $1",
+        [limit]
+      );
+      const snippets = dbres.rows;
+      if (snippets) {
+        res.status(200).json({
+          status: "success",
+          message: "Retrieved snippets",
+          data: snippets,
+        });
+      } else {
+        res.status(500).json({
+          status: "fail",
+          message: "Something went wrong with fetching snippets.",
+          data: {},
+        });
+      }
+    } else {
       res.status(400).json({
         status: "fail",
         message: "Bad request. Limit must be a positive whole number.",
         data: {},
       });
-    } else {
-      // ensure limit is never more than 100
-      if (limit > 100) {
-        limit = 100;
-      }
     }
-    dbres = await client.query(
-      "SELECT * FROM snippets ORDER BY createdat DESC, id DESC LIMIT $1",
-      [limit]
-    );
   } else {
     dbres = await client.query(
       "SELECT * FROM snippets ORDER BY createdat DESC, id DESC"
     );
-  }
-  const snippets = dbres.rows;
-  if (snippets) {
-    res.status(200).json({
-      status: "success",
-      message: "Retrieved snippets",
-      data: snippets,
-    });
-  } else {
-    res.status(500).json({
-      status: "fail",
-      message: "Something went wrong with fetching snippets.",
-      data: {},
-    });
+    const snippets = dbres.rows;
+    if (snippets) {
+      res.status(200).json({
+        status: "success",
+        message: "Retrieved snippets",
+        data: snippets,
+      });
+    } else {
+      res.status(500).json({
+        status: "fail",
+        message: "Something went wrong with fetching snippets.",
+        data: {},
+      });
+    }
   }
 });
 
